@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # gibustest starts a private dbus-daemon of its own; --require-bus fails it
+  # when there is none.
+  linux:
+    name: linux ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86-64, runner: ubuntu-24.04, flags: '', packages: '' }
+          - { arch: x86, runner: ubuntu-24.04, flags: '-m32', packages: gcc-multilib }
+          - { arch: arm64, runner: ubuntu-24.04-arm, flags: '', packages: '' }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake dbus ${{ matrix.packages }}
+
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="${{ matrix.flags }}"
+          cmake --build build
+          file build/gibustest
+
+      - name: Test
+        run: build/gibustest --require-bus
+
+  bsd:
+    name: ${{ matrix.os }} ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: freebsd, version: '15.1' }
+          - { os: openbsd, version: '7.9' }
+          - { os: netbsd, version: '11.0' }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and test
+        uses: cross-platform-actions/action@e0b9770014ba65d5e0815f15b74031c3a635f641 # v1.6.0
+        with:
+          operating_system: ${{ matrix.os }}
+          version: ${{ matrix.version }}
+          architecture: x86-64
+          shell: sh
+          cpu_count: 2
+          memory: 4G
+          run: |
+            set -eu
+            PATH=/usr/pkg/sbin:/usr/pkg/bin:/usr/local/sbin:/usr/local/bin:$PATH
+            export PATH
+            case "$(uname -s)" in
+              FreeBSD)
+                sudo env IGNORE_OSVERSION=yes pkg install -y cmake-core dbus </dev/null
+                ;;
+              OpenBSD)
+                sudo pkg_add -I cmake-core dbus </dev/null
+                ;;
+              NetBSD)
+                sudo sed -i.orig 's#^ftp://ftp\.NetBSD\.org#https://cdn.NetBSD.org#' /usr/pkg/etc/pkgin/repositories.conf
+                sudo -E pkgin -y update </dev/null
+                sudo -E pkgin -y install cmake dbus </dev/null
+                ;;
+            esac
+            uname -a
+            cc --version
+            cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+            cmake --build build
+            build/gibustest --require-bus
+
+  windows:
+    name: windows msvc
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build
+        run: |
+          cmake -S . -B build
+          cmake --build build --config Release
+
+      - name: Test
+        run: build/Release/gibustest.exe
