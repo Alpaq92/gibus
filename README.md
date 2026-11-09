@@ -107,6 +107,26 @@ Arguments are read with `gibus_msg_get_args` or an iterator
 `gibus_iter_close`. Strings read from a message point into it and live as
 long as it does.
 
+## Against libdbus
+
+The same work through each: one connection serves an object, another calls
+it and walks the whole reply, on a private session bus. Seven alternating
+rounds, medians, ranges in brackets.
+
+| | gibus | libdbus |
+| --- | --- | --- |
+| Call with an empty reply | 269 µs (145–341) | 300 µs (195–313) |
+| Call with a 200-item menu reply, walked in full | 1.65 ms (0.98–1.71) | 2.97 ms (2.29–4.51) |
+| Connecting to the bus | 533 µs (439–1,229) | 758 µs (528–1,177) |
+| Machine code (`.text`) | 35.5 KB | 190.6 KB |
+
+Large replies take about 45% less time; on empty calls and connecting the
+ranges overlap. Most of a call is `dbus-daemon` passing it on: of the 1.65 ms,
+gibus's own building and reading is about 210 µs.
+
+Linux Mint 22.3, a KVM guest with 4 cores of a Ryzen 5 4600H, under load
+(load average 3); GCC 13.3 at `-O2`, libdbus 1.14.10 as Ubuntu ships it.
+
 ## Threads
 
 - Any thread may send, call and flush on a connection.
