@@ -1,5 +1,3 @@
-/* Ported from minidbus's conn/ (MIT; see LICENSE). */
-
 #if defined(__linux__) && !defined(_DEFAULT_SOURCE)
 #define _DEFAULT_SOURCE
 #endif
