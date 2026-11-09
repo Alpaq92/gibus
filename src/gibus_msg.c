@@ -1283,7 +1283,10 @@ gibus_iter_next(gibus_iter *it)
     size_t tl;
 
     if (!gibus_iter_type(it)) return 0;
-    tl = span(it->sig + it->sig_at, it->sig_len - it->sig_at);
+    /* An array's or a variant's signature is one complete type. */
+    tl = it->container == GIBUS_TYPE_ARRAY || it->container == GIBUS_TYPE_VARIANT
+             ? it->sig_len
+             : span(it->sig + it->sig_at, it->sig_len - it->sig_at);
     d.b = it->msg->body;
     d.len = it->msg->body_len;
     d.pos = it->pos;
