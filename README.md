@@ -115,17 +115,17 @@ rounds, medians, ranges in brackets.
 
 | | gibus | libdbus |
 | --- | --- | --- |
-| Call with an empty reply | 269 µs (145–341) | 300 µs (195–313) |
-| Call with a 200-item menu reply, walked in full | 1.65 ms (0.98–1.71) | 2.97 ms (2.29–4.51) |
-| Connecting to the bus | 533 µs (439–1,229) | 758 µs (528–1,177) |
+| Call with an empty reply | 225 µs (166–268) | 269 µs (226–324) |
+| Call with a 200-item menu reply, walked in full | 1.53 ms (1.42–2.18) | 2.64 ms (2.44–3.78) |
+| Connecting to the bus | 478 µs (434–850) | 715 µs (469–844) |
 | Machine code (`.text`) | 35.5 KB | 190.6 KB |
 
-Large replies take about 45% less time; on empty calls and connecting the
+Large replies take about 42% less time; on empty calls and connecting the
 ranges overlap. Most of a call is `dbus-daemon` passing it on: in a profiled
 run, gibus's own building and reading was about 210 µs of a 1.28 ms call.
 
 Linux Mint 22.3, a KVM guest with 4 cores of a Ryzen 5 4600H, under load
-(load average 3); GCC 13.3 at `-O2`, libdbus 1.14.10 as Ubuntu ships it.
+(load average 2–4); GCC 13.3 at `-O2`, libdbus 1.14.10 as Ubuntu ships it.
 
 ## Threads
 
