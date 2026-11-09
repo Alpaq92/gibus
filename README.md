@@ -121,8 +121,8 @@ rounds, medians, ranges in brackets.
 | Machine code (`.text`) | 35.5 KB | 190.6 KB |
 
 Large replies take about 45% less time; on empty calls and connecting the
-ranges overlap. Most of a call is `dbus-daemon` passing it on: of the 1.65 ms,
-gibus's own building and reading is about 210 µs.
+ranges overlap. Most of a call is `dbus-daemon` passing it on: in a profiled
+run, gibus's own building and reading was about 210 µs of a 1.28 ms call.
 
 Linux Mint 22.3, a KVM guest with 4 cores of a Ryzen 5 4600H, under load
 (load average 3); GCC 13.3 at `-O2`, libdbus 1.14.10 as Ubuntu ships it.
