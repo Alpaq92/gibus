@@ -1,8 +1,6 @@
 #ifndef GIBUS_H
 #define GIBUS_H
 
-/* Ported from minidbus (MIT; see LICENSE). */
-
 #include <stddef.h>
 #include <stdint.h>
 
@@ -138,10 +136,9 @@ int gibus_msg_is_signal(const gibus_msg *m, const char *iface, const char *membe
 int gibus_msg_has_member(const gibus_msg *m, const char *member);
 int gibus_msg_has_signature(const gibus_msg *m, const char *sig);
 
-/* Pairs of a type and a pointer to where it goes, ended by
-   GIBUS_TYPE_INVALID. Strings, object paths and signatures point into the
-   message. GIBUS_TYPE_ARRAY takes a fixed element type, a pointer to a const
-   pointer to the elements and an int count. */
+/* Type and pointer pairs, ended by GIBUS_TYPE_INVALID. Strings point into the
+   message; GIBUS_TYPE_ARRAY takes an element type, a const pointer's address
+   and an int count. */
 int gibus_msg_get_args(gibus_msg *m, gibus_error *err, int type, ...);
 int gibus_msg_append_args(gibus_msg *m, int type, ...);
 

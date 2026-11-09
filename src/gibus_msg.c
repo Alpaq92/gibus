@@ -1,5 +1,3 @@
-/* Ported from minidbus's marshal/ and message/ (MIT; see LICENSE). */
-
 #include "gibus_internal.h"
 
 #include <stdarg.h>
